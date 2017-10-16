@@ -1,0 +1,25 @@
+-s **/*.html
+-s **/*.java
+-s **/*.jar
+-s **/*.ps
+-s **/*.pdf
+-s **/*.jpg
+-s **/*.gif
+-s **/.svn
+-s **/.git
+-s **/.rpmdb
+-s **/.yumcache
+-s **/o..pacman..o
+-s **/mysql
+-s **/MySQL
+-s **/*centos7*
+-s **/tutorial
+-s **/emacs
+-s **/Icons
+-s **/icons
+-s **/html
+-s **/htmls
+-s **/java
+-s **/Java
+-s **/x86_64-slc6-gcc62-opt
+
