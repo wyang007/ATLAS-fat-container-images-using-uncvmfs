@@ -34,10 +34,12 @@ else
 fi
 
 echo ">>> rsync ATLASLocalRootBase"
+# rsync-exclude.rules.txt needs to be copied everytime because each singularity rsync run maybe 
+# have a big time gap and this file may be deleted during the gap.
+cp $scriptdir/rsync-exclude.rules.txt /tmp/rsync-exclude.rules.txt
 # we can not exclude java and x86_64-slc6-gcc62-opt from ATLASLocalRootBase, or voms-proxy-info will 
 # not work (and rucio may not work either)
-singularity exec -w -B /data/yangw/uncvmfs/root/cvmfs:/mnt \
-                    -B ${scriptdir}/rsync-exclude.rules.txt:/tmp/rsync-exclude.rules.txt $latestsingimg \
+singularity exec -w -B /data/yangw/uncvmfs/root/cvmfs:/mnt $latestsingimg \
     rsync -aO --no-o --no-g --delete -H --no-A --no-X -v \
         --filter='+s **/x86_64-slc6-gcc62-opt' \
         --filter='+s **/java' \
@@ -51,10 +53,10 @@ singularity exec -w -B /data/yangw/uncvmfs/root/cvmfs:/mnt \
         --filter='-s /atlas.cern.ch/repo/*' \
         /mnt/ /cvmfs
         
-echo ">>> rsync other things, excluding ATLASLocalRootBase"
+echo ">>> rsync other things, excluding ATLASLocalRootBase" 
+cp $scriptdir/rsync-exclude.rules.txt /tmp/rsync-exclude.rules.txt
 # sw/software and database/DBReleases will be rsync-ed later
-singularity exec -w -B /data/yangw/uncvmfs/root/cvmfs:/mnt \
-                    -B ${scriptdir}/rsync-exclude.rules.txt:/tmp/rsync-exclude.rules.txt $latestsingimg \
+singularity exec -w -B /data/yangw/uncvmfs/root/cvmfs:/mnt $latestsingimg \
     rsync -aO --no-o --no-g --delete -H --no-A --no-X -v \
         --filter='. /tmp/rsync-exclude.rules.txt' \
         --filter='P /atlas.cern.ch/repo/ATLASLocalRootBase' \
@@ -75,8 +77,8 @@ singularity exec -w -B /data/yangw/uncvmfs/root/cvmfs:/mnt \
         /mnt/ /cvmfs
 
 echo ">>> rsync sw/software/xxx"
-singularity exec -w -B /data/yangw/uncvmfs/root/cvmfs:/mnt \
-                    -B ${scriptdir}/rsync-exclude.rules.txt:/tmp/rsync-exclude.rules.txt $latestsingimg \
+cp $scriptdir/rsync-exclude.rules.txt /tmp/rsync-exclude.rules.txt
+singularity exec -w -B /data/yangw/uncvmfs/root/cvmfs:/mnt $latestsingimg \
     rsync -aO --no-o --no-g --delete -H --no-A --no-X -v \
         --filter='. /tmp/rsync-exclude.rules.txt' \
         --filter='-s **/lcg/releases/R' \
@@ -90,8 +92,8 @@ singularity exec -w -B /data/yangw/uncvmfs/root/cvmfs:/mnt \
         /mnt/atlas.cern.ch/repo/sw/software/ /cvmfs/atlas.cern.ch/repo/sw/software
 
 echo ">>> rsync sw/database/DBRelease"
-singularity exec -w -B /data/yangw/uncvmfs/root/cvmfs:/mnt \
-                    -B ${scriptdir}/rsync-exclude.rules.txt:/tmp/rsync-exclude.rules.txt $latestsingimg \
+cp $scriptdir/rsync-exclude.rules.txt /tmp/rsync-exclude.rules.txt
+singularity exec -w -B /data/yangw/uncvmfs/root/cvmfs:/mnt $latestsingimg \
     rsync -aO --no-o --no-g --delete -H --no-A --no-X -v -L \
         --filter='. /tmp/sync-exclude.rules.txt' \
         --filter='+s /DBRelease/current' \

@@ -12,9 +12,12 @@ scriptdir=$(dirname $script)
 exec > /tmp/sync-atlas-uncvmfs.log 2>&1
 date
 
+# /data/yangw/uncvmfs/root is the root file system extracted from ATLAS cent6 image.i
+# Owership of 'cvmfs' may need to be adjusted to allow writing by script runner.
 cd /data/yangw/uncvmfs/root
 date > creation_time
 mkdir -p cvmfs/atlas-condb.cern.ch cvmfs/atlas-nightlies.cern.ch cvmfs/sft.cern.ch
+[ -d var/lib/condor-ce ] || echo "WARNING: var/lib/condor-ce does not exist!" 
 
 # Symlink needed at NERSC
 [ -L project ] || ln -s /global/project project
@@ -22,11 +25,13 @@ mkdir -p cvmfs/atlas-condb.cern.ch cvmfs/atlas-nightlies.cern.ch cvmfs/sft.cern.
 mkdir -p lustre autofs ccs
 # /ustlas has to exist in order to run "singularity exec -w" at BNL
 mkdir -p usatlas 
+# /u has to exist in order to run "singularity exec -w" at SLAC
+mkdir -p u 
 
 echo ""
 echo "---------- Update cvmfs"
 echo ""
-#uncvmfs -vv -n16 /data/yangw/git/atlas-fat-container/uncvmfs.conf atlas
+uncvmfs -vv -n16 $scriptdir/uncvmfs.conf atlas
 # yampl is needed by Event Service
 rsync -aO --no-o --no-g --delete -H --no-A --no-X -v \
     /cvmfs/atlas.cern.ch/repo/sw/local/x86_64-slc5-gcc43-opt/yampl \
@@ -41,7 +46,10 @@ createSquashfsImg() {
     echo ""
     echo "---------- Making squashfs image"
     echo ""
-    /sbin/mksquashfs * $sqshimg -no-progress -no-xattrs -wildcards -e 'cvmfs/atlas.cern.ch/repo/images/*'
+    /sbin/mksquashfs * $sqshimg -no-progress -no-xattrs -wildcards \
+                                -e 'cvmfs/atlas.cern.ch/repo/images/*' \
+                                -e 'cvmfs/atlas.cern.ch/repo/containers/*' \
+                                -e 'cvmfs/atlas.cern.ch/repo/sw/database/GroupData/FTK/*' 
 
     ssh dtn01.nersc.gov "rm ${nerscsqsh}.completed"
     bbcp -s 16 -f $sqshimg dtn01.nersc.gov:$nerscsqsh
@@ -69,12 +77,13 @@ if [ ! -f $latestsingimg ]; then
     #find . -type f -exec rm {} \;
     #tar cf - * | singularity import $latestsingimg
     #cd /data/yangw/uncvmfs/root
+
+    # this command can also be used standalone to refresh the contents of the cent6 OS part.
     tar --no-acls --no-xattrs --exclude=cvmfs/atlas.cern.ch/repo -cvf - * | singularity import $latestsingimg
 # singularity exec -w -B /data/yangw/uncvmfs/root:/mnt $latestsingimg /bin/sh \
 #    (cd /mnt; tar --no-acls --no-xattrs -cf - cvmfs) | \
 #    (cd /; tar --no-acls --no-xattrs --atime-preserve=system --delay-directory-restore -xvf -)
 
-#    tar --no-acls --no-xattrs -cf - * | singularity import $latestsingimg
 else
     echo ""
     echo "---------- Updatng singularity image"
@@ -85,10 +94,12 @@ else
 fi
 
 echo ">>> rsync ATLASLocalRootBase"
+# rsync-exclude.rules.txt needs to be copied everytime because each singularity rsync run maybe 
+# have a big time gap and this file may be deleted during the gap.
+cp $scriptdir/rsync-exclude.rules.txt /tmp/rsync-exclude.rules.txt
 # we can not exclude java and x86_64-slc6-gcc62-opt from ATLASLocalRootBase, or voms-proxy-init will
 # not work (and rucio may not work either)
-singularity exec -w -B /data/yangw/uncvmfs/root/cvmfs:/mnt \
-                    -B ${scriptdir}/rsync-exclude.rules.txt:/tmp/rsync-exclude.rules.txt $latestsingimg \
+singularity exec -w -B /data/yangw/uncvmfs/root/cvmfs:/mnt $latestsingimg \
     rsync -aO --no-o --no-g --delete -H --no-A --no-X -v \
         --filter='+s **/x86_64-slc6-gcc62-opt' \
         --filter='+s **/java' \
@@ -102,13 +113,15 @@ singularity exec -w -B /data/yangw/uncvmfs/root/cvmfs:/mnt \
         --filter='-s /atlas.cern.ch/repo/*' \
         /mnt/ /cvmfs
 
+cp $scriptdir/rsync-exclude.rules.txt /tmp/rsync-exclude.rules.txt
 echo ">>> rsync other things, excluding ATLASLocalRootBase"
-singularity exec -w -B /data/yangw/uncvmfs/root/cvmfs:/mnt \
-                    -B ${scriptdir}/rsync-exclude.rules.txt:/tmp/rsync-exclude.rules.txt $latestsingimg \
+singularity exec -w -B /data/yangw/uncvmfs/root/cvmfs:/mnt $latestsingimg \
     rsync -aO --no-o --no-g --delete -H --no-A --no-X -v \
         --filter='. /tmp/rsync-exclude.rules.txt' \
         --filter='P /atlas.cern.ch/repo/ATLASLocalRootBase' \
         --filter='+s /atlas.cern.ch/repo/sw/database/DBRelease' \
+        --filter='-s /atlas.cern.ch/repo/sw/database/GroupData/FTK*' \
+        --filter='+s /atlas.cern.ch/repo/sw/database/GroupData/*' \
         --filter='+s /atlas.cern.ch/repo/sw/database/GroupData' \
         --filter='-s /atlas.cern.ch/repo/sw/database/*' \
         --filter='-s /atlas.cern.ch/repo/sw/BOINC' \
