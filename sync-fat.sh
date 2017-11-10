@@ -144,6 +144,7 @@ sync
 /sbin/resize2fs -f -M $tmpimg 
 dd if=$latestsingimg ibs=31 count=1 > $latestsingimg.$cmt
 dd if=$tmpimg bs=1M of=$latestsingimg.$cmt oflag=append conv=notrunc
+singularity expand --size 50 $latestsingimg.$cmt
 rm $tmpimg
 date
 wait
