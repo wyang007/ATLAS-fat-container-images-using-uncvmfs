@@ -5,7 +5,7 @@ latestsingimg="/data/yangw/images/centos6-cvmfs.atlas.cern.ch.mini.img"
 cmt="x86_64-slc6-gcc49-opt"
 
 script=$(readlink -f $0)
-scrpitdir=$(dirname $SCRIPT)
+scriptdir=$(dirname $script)
 
 exec > /tmp/sync-single-singularity.log 2>&1
 date
@@ -95,7 +95,7 @@ echo ">>> rsync sw/database/DBRelease"
 cp $scriptdir/rsync-exclude.rules.txt /tmp/rsync-exclude.rules.txt
 singularity exec -w -B /data/yangw/uncvmfs/root/cvmfs:/mnt $latestsingimg \
     rsync -aO --no-o --no-g --delete -H --no-A --no-X -v -L \
-        --filter='. /tmp/sync-exclude.rules.txt' \
+        --filter='. /tmp/rsync-exclude.rules.txt' \
         --filter='+s /DBRelease/current' \
         --filter='-s /DBRelease/*' \
         --filter='+s /DBRelease' \
@@ -118,6 +118,7 @@ dd if=$latestsingimg bs=1M count=1 | dd ibs=31 skip=1 of=$tmpimg
 dd if=$latestsingimg bs=1M skip=1 of=$tmpimg oflag=append conv=notrunc
 sync
 resize2fs -f -M $tmpimg 
+rm $latestsingimg.$cmt
 dd if=$latestsingimg ibs=31 count=1 > $latestsingimg.$cmt
 dd if=$tmpimg bs=1M of=$latestsingimg.$cmt oflag=append conv=notrunc
 singularity expand --size 50 $latestsingimg.$cmt
