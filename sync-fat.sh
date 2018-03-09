@@ -4,7 +4,7 @@ nerscsqsh="/global/cscratch1/sd/yangw/shifter-imgs-4-atlas/centos6-cvmfs.atlas.c
 sqshimg="/data/yangw/images/centos6-cvmfs.atlas.cern.ch.${datestamp}.sqsh"
 singimg="/data/yangw/images/centos6-cvmfs.atlas.cern.ch.${datestamp}.img"
 latestsingimg="/data/yangw/images/centos6-cvmfs.atlas.cern.ch.img"
-cmt="x86_64-slc6-gcc49-opt"
+cmt="x86_64-slc6-gcc49+"
 
 script=$(readlink -f $0)
 scriptdir=$(dirname $script)
@@ -32,6 +32,7 @@ echo ""
 echo "---------- Update cvmfs"
 echo ""
 uncvmfs -vv -n16 $scriptdir/uncvmfs.conf atlas
+#uncvmfs -vv -n8 $HOME/local/etc/uncvmfs/uncvmfs.conf atlas
 # yampl is needed by Event Service
 rsync -aO --no-o --no-g --delete -H --no-A --no-X -v \
     /cvmfs/atlas.cern.ch/repo/sw/local/x86_64-slc5-gcc43-opt/yampl \
@@ -56,7 +57,7 @@ createSquashfsImg() {
     ssh dtn01.nersc.gov "touch ${nerscsqsh}.completed"
     date
 }
-#createSquashfsImg &
+createSquashfsImg &
 
 exec > /tmp/sync-atlas-singularity.log 2>&1
 date
@@ -68,7 +69,7 @@ if [ ! -f $latestsingimg ]; then
     #cd /data/yangw/images
     #cp /cvmfs/atlas.cern.ch/repo/images/singularity/x86_64-centos6.img $singimg
     #singularity expand -s 460800 $latestsingimg
-    singularity create -s 512000 $latestsingimg
+    singularity image.create -s 512000 $latestsingimg
     ln $latestsingimg $singimg
 
     # add the following empty directories to the image
@@ -88,9 +89,9 @@ else
     echo ""
     echo "---------- Updatng singularity image"
     echo ""
-#    dd if=$latestsingimg of=$singimg bs=4096k
-#    rm $latestsingimg
-#    ln $singimg $latestsingimg
+    dd if=$latestsingimg of=$singimg bs=4096k
+    rm $latestsingimg
+    ln $singimg $latestsingimg
 fi
 
 echo ">>> rsync ATLASLocalRootBase"
@@ -142,9 +143,12 @@ dd if=$latestsingimg bs=1M count=1 | dd ibs=31 skip=1 of=$tmpimg
 dd if=$latestsingimg bs=1M skip=1 of=$tmpimg oflag=append conv=notrunc
 sync
 /sbin/resize2fs -f -M $tmpimg 
-dd if=$latestsingimg ibs=31 count=1 > $latestsingimg.$cmt
-dd if=$tmpimg bs=1M of=$latestsingimg.$cmt oflag=append conv=notrunc
-singularity expand --size 50 $latestsingimg.$cmt
-rm $tmpimg
+dd if=/dev/zero bs=1M mount=100 of=$tmpimg oflag=append conv=notrunc
+/sbin/e2fsck -fy $tmpimg
+/sbin/resize2fs -f $tmpimg
+/sbin/tune2fs -m 0 $tmpimg
+dd if=$latestsingimg ibs=31 count=1 > $latestsingimg.$cmt.$datestamp
+dd if=$tmpimg bs=1M of=$latestsingimg.$cmt.$datestamp oflag=append conv=notrunc
+#rm $tmpimg
 date
 wait

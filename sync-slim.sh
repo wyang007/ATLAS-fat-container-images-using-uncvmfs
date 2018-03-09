@@ -118,9 +118,12 @@ dd if=$latestsingimg bs=1M count=1 | dd ibs=31 skip=1 of=$tmpimg
 dd if=$latestsingimg bs=1M skip=1 of=$tmpimg oflag=append conv=notrunc
 sync
 resize2fs -f -M $tmpimg 
+dd if=/dev/zero bs=1M mount=100 of=$tmpimg oflag=append conv=notrunc
+/sbin/e2fsck -fy $tmpimg
+/sbin/resize2fs -f $tmpimg
+/sbin/tune2fs -m 0 $tmpimg
 rm $latestsingimg.$cmt
 dd if=$latestsingimg ibs=31 count=1 > $latestsingimg.$cmt
 dd if=$tmpimg bs=1M of=$latestsingimg.$cmt oflag=append conv=notrunc
-singularity expand --size 50 $latestsingimg.$cmt
 rm $tmpimg
 date

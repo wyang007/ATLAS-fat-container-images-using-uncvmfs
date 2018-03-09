@@ -21,5 +21,4 @@
 -s **/htmls
 -s **/java
 -s **/Java
--s **/x86_64-slc6-gcc62-opt
-
+#-s **/x86_64-slc6-gcc62-opt
