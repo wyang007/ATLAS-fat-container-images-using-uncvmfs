@@ -1,0 +1,52 @@
+# We need java/.jar/.java because voms-proxy-init, etc. uses Java.
+... /*.html
+#... /*.java
+#... /*.jar
+... /*.ps
+... /*.pdf
+... /*.jpg
+... /*.gif
+... /.svn
+... /.git
+... /.rpmdb
+... /.yumcache
+... /o..pacman..o
+... /mysql
+... /MySQL
+... /*centos7*
+... /tutorial
+... /emacs
+... /Icons
+... /icons
+... /html
+... /htmls
+#... /java
+... /Java
+... /*x86_64-slc6-gcc46*
+... /*x86_64-slc6-gcc4.6*
+... /*x86_64-slc6-gcc47*
+... /*x86_64-slc6-gcc4.7*
+... /*x86_64-slc6-gcc48*
+... /*x86_64-slc6-gcc4.8*
+#... /*x86_64-slc6-gcc49*
+#... /*x86_64-slc6-gcc4.9*
+#... /*x86_64-slc6-gcc62*
+#... /*x86_64-slc6-gcc6.2*
+cvmfs/atlas.cern.ch/repo/[b-i,t]*
+cvmfs/atlas.cern.ch/repo/images/*
+cvmfs/atlas.cern.ch/repo/containers/*
+cvmfs/atlas.cern.ch/repo/sw/database/GroupData/FTK/*
+# not sure if we need "sw/tdaq"
+cvmfs/atlas.cern.ch/repo/sw/tdaq/*
+cvmfs/atlas.cern.ch/repo/sw/software/1*
+cvmfs/atlas.cern.ch/repo/sw/software/2.*
+#cvmfs/atlas.cern.ch/repo/sw/software/2[0,2].*
+#cvmfs/atlas.cern.ch/repo/sw/software/21.[1-9].*
+cvmfs/atlas.cern.ch/repo/sw/software/A*
+cvmfs/atlas.cern.ch/repo/sw/software/i*
+cvmfs/atlas.cern.ch/repo/sw/software/n*
+cvmfs/atlas.cern.ch/repo/sw/software/x86_64-slc5-gcc43-opt*
+#cvmfs/atlas.cern.ch/repo/sw/software/x86_64-slc6-gcc4[6,8,9]-opt*
+#cvmfs/atlas.cern.ch/repo/sw/software/x86_64-slc6-gcc47-opt/1[7-8]*
+#cvmfs/atlas.cern.ch/repo/sw/software/x86_64-slc6-gcc47-opt/19.[0,1,3]*
+#cvmfs/atlas.cern.ch/repo/sw/software/x86_64-slc6-gcc47-opt/19.2.[0,1,2,4,5]*
