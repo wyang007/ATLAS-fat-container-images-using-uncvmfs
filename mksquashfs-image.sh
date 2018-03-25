@@ -7,8 +7,9 @@ scriptdir=$(dirname $script)
 date
 # when changing CMT, remember to update mksquashfs-exclude.rules.txt
 cmt=x86_64-slc6-gcc49n62
+cmt=x86_64-slc6-gcc62
 datestamp=`date +%Y%m%d%H%M`
-sqshimg=/data/yangw/images/centos6-cvmfs.atlas.cern.ch.$cmt.$timestamp.sqsh
+sqshimg=/data/yangw/images/centos6-cvmfs.atlas.cern.ch.$cmt.$datestamp.sqsh
 rm $sqshimg
 
 cd /data/yangw/root
